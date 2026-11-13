@@ -1,0 +1,233 @@
+﻿<Window x:Class="TaskManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Shell;assembly=TaskManager.Application"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:ShellViewModel}"
+        Title="Task Manager" Height="750" Width="1200" MinHeight="600" MinWidth="950"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI, sans-serif">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Sidebar column: width animated/driven by IsSidebarExpanded -->
+            <ColumnDefinition Width="Auto" />
+            <!-- Main Content column -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar Navigation -->
+        <Border Grid.Column="0" Background="{DynamicResource SidebarBackgroundBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Width" Value="240" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSidebarExpanded}" Value="False">
+                                <Setter Property="Width" Value="56" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.RowDefinitions>
+                    <!-- Top header: Hamburger + App Title -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Main Navigation Items -->
+                    <RowDefinition Height="*"/>
+                    <!-- Bottom Footer Navigation Items (Settings, Theme) -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Top Header -->
+                <Grid Grid.Row="0" Margin="10,12,10,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Command="{Binding ToggleSidebarCommand}"
+                            Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource TextPrimaryBrush}"
+                            Cursor="Hand" Width="36" Height="36"
+                            ToolTip="Toggle navigation pane">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                                    <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{TemplateBinding Foreground}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <TextBlock Grid.Column="1" Text="Task Manager" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               VerticalAlignment="Center" Margin="8,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSidebarExpanded}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+
+                <!-- Main Navigation Items List -->
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding MainNavigationItems}" Margin="6,0,6,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}"
+                                    Height="40" Margin="0,2" Cursor="Hand">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="itemBorder" CornerRadius="4" Background="Transparent">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="4"/>
+                                                    <ColumnDefinition Width="40"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Active Indicator Pill -->
+                                                <Border x:Name="indicator" Grid.Column="0" Width="3" Height="18"
+                                                        Background="{DynamicResource AccentBrush}" CornerRadius="2"
+                                                        HorizontalAlignment="Left" Visibility="Collapsed" />
+
+                                                <!-- Icon -->
+                                                <TextBlock Grid.Column="1" Text="{Binding IconGlyph}"
+                                                           FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                                <!-- Title -->
+                                                <TextBlock x:Name="itemTitle" Grid.Column="2" Text="{Binding Title}"
+                                                           FontSize="13" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource SubtleSelectedBrush}" />
+                                                <Setter TargetName="indicator" Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                                            </Trigger>
+                                            <DataTrigger Binding="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                <Setter TargetName="itemTitle" Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Bottom Footer (Settings & Theme) -->
+                <StackPanel Grid.Row="2" Margin="6,0,6,12">
+                    <Separator Background="{DynamicResource DividerBrush}" Margin="6,6,6,10"/>
+
+                    <!-- Settings Button -->
+                    <ItemsControl ItemsSource="{Binding FooterNavigationItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}"
+                                        Height="40" Margin="0,2" Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="itemBorder" CornerRadius="4" Background="Transparent">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="4"/>
+                                                        <ColumnDefinition Width="40"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border x:Name="indicator" Grid.Column="0" Width="3" Height="18"
+                                                            Background="{DynamicResource AccentBrush}" CornerRadius="2"
+                                                            HorizontalAlignment="Left" Visibility="Collapsed" />
+
+                                                    <TextBlock Grid.Column="1" Text="{Binding IconGlyph}"
+                                                               FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                                    <TextBlock x:Name="itemTitle" Grid.Column="2" Text="{Binding Title}"
+                                                               FontSize="13" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource SubtleSelectedBrush}" />
+                                                    <Setter TargetName="indicator" Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                                                </Trigger>
+                                                <DataTrigger Binding="{Binding DataContext.IsSidebarExpanded, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+                                                    <Setter TargetName="itemTitle" Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Theme Toggle Quick Button -->
+                    <Button Command="{Binding ToggleThemeCommand}" Height="40" Margin="0,2" Cursor="Hand" ToolTip="Toggle theme (Light / Dark)">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="themeBorder" CornerRadius="4" Background="Transparent">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4"/>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="1" Text="&#xE706;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                                        <TextBlock x:Name="themeTitle" Grid.Column="2" Text="Toggle Theme"
+                                                   FontSize="13" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="themeBorder" Property="Background" Value="{DynamicResource SubtleHoverBrush}" />
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsSidebarExpanded}" Value="False">
+                                        <Setter TargetName="themeTitle" Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content Area -->
+        <Border Grid.Column="1" Background="{DynamicResource ContentBackgroundBrush}">
+            <ContentControl Content="{Binding CurrentViewModel}" Focusable="False" />
+        </Border>
+    </Grid>
+</Window>
