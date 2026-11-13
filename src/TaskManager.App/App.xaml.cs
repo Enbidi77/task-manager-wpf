@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +44,11 @@ public partial class App : System.Windows.Application
                 rollingInterval: RollingInterval.Day,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
+
+        // Global Exception Handlers
+        AppDomain.CurrentDomain.UnhandledException += OnUnhandledAppDomainException;
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         try
         {
@@ -134,9 +140,36 @@ public partial class App : System.Windows.Application
         }
     }
 
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Unhandled UI Dispatcher exception intercepted.");
+        e.Handled = true;
+        System.Windows.MessageBox.Show(
+            $"An unexpected error occurred:\n{e.Exception.Message}",
+            "Task Manager - Notice",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+
+    private void OnUnhandledAppDomainException(object sender, UnhandledExceptionEventArgs e)
+    {
+        var ex = e.ExceptionObject as Exception;
+        Log.Fatal(ex, "Critical unhandled AppDomain exception occurred. IsTerminating: {IsTerminating}", e.IsTerminating);
+    }
+
+    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Unobserved background Task exception intercepted.");
+        e.SetObserved();
+    }
+
     protected override async void OnExit(ExitEventArgs e)
     {
         Log.Information("Application exiting, disposing host...");
+
+        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledAppDomainException;
+        DispatcherUnhandledException -= OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException -= OnUnobservedTaskException;
 
         if (_host != null)
         {

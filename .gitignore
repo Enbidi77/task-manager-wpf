@@ -1,5 +1,11 @@
 bin/
 obj/
+publish/
+logs/
+*.log
+*.db
+*.db-shm
+*.db-wal
 .vs/
 *.user
 *.suo
