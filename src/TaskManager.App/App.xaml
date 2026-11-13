@@ -24,6 +24,7 @@
             <converters:TimeSpanToUptimeConverter x:Key="TimeSpanToUptimeConverter" />
             <converters:ProcessStatusConverter x:Key="ProcessStatusConverter" />
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <converters:LogLevelToColorConverter x:Key="LogLevelToColorConverter" />
 
             <!-- ViewModel to View Mappings -->
             <DataTemplate DataType="{x:Type vmDash:DashboardViewModel}">

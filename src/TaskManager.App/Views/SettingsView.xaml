@@ -5,77 +5,515 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:enums="clr-namespace:TaskManager.Shared.Enums;assembly=TaskManager.Shared"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Settings;assembly=TaskManager.Application"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="28,20,28,28" MaxWidth="720" HorizontalAlignment="Left">
-            <TextBlock Text="Settings" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6" />
-            <TextBlock Text="Configure appearance and application behavior" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,24" />
+    <Grid Margin="24,16,24,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <!-- Appearance Section -->
-            <TextBlock Text="Appearance" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Settings" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+                <TextBlock Text="Configure application preferences, monitoring parameters, and diagnostic telemetry" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
 
-            <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="App Theme" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Select which app theme to display" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                    </StackPanel>
+        <!-- Segmented Tab Header -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="4" HorizontalAlignment="Left" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton Content="General" 
+                             IsChecked="{Binding SelectedTabIndex, Converter={x:Null}, Mode=OneWay}"
+                             Command="{Binding SetTabIndexCommand, FallbackValue={x:Null}}"
+                             GroupName="SettingsTabs"
+                             Tag="0"
+                             Style="{x:Null}">
+                    <RadioButton.Template>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border x:Name="TabBorder" CornerRadius="4" Padding="16,6" Background="Transparent" Cursor="Hand">
+                                <TextBlock Text="General" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" x:Name="TabText"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="0">
+                                    <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                    <Setter TargetName="TabText" Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                </DataTrigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource SubtleHoverBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </RadioButton.Template>
+                </RadioButton>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button Content="Dark" Command="{Binding SwitchThemeCommand}" CommandParameter="{x:Static enums:AppTheme.Dark}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,6,0" />
-                        <Button Content="Light" Command="{Binding SwitchThemeCommand}" CommandParameter="{x:Static enums:AppTheme.Light}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,6,0" />
-                        <Button Content="Toggle" Command="{Binding ToggleThemeCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" />
-                    </StackPanel>
-                </Grid>
-            </Border>
+                <!-- Button trigger for Tab 0 -->
+                <Button Content="General" 
+                        Click="OnGeneralTabClick"
+                        Padding="16,6" 
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        FontSize="13"
+                        Margin="0,0,4,0">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" CornerRadius="4" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="{DynamicResource SubtleHoverBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="0">
+                                    <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
 
-            <!-- Window Behavior Section -->
-            <TextBlock Text="Window Behavior" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,12" />
+                <!-- Button trigger for Tab 1 -->
+                <Button Content="Diagnostics &amp; Logs" 
+                        Click="OnDiagnosticsTabClick"
+                        Padding="16,6" 
+                        Cursor="Hand"
+                        FontWeight="SemiBold"
+                        FontSize="13">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" CornerRadius="4" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="{DynamicResource SubtleHoverBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedTabIndex}" Value="1">
+                                    <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </StackPanel>
+        </Border>
 
-            <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,12">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Always on top" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Keep the Task Manager window floating above all other windows" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding AlwaysOnTop}" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2">
 
-            <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Minimize on use" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Automatically minimize when switching focus to a selected process" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeOnUse}" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
+            <!-- TAB 0: GENERAL SETTINGS -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer.Style>
+                    <Style TargetType="ScrollViewer">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedTabIndex}" Value="0">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ScrollViewer.Style>
 
-            <!-- About Section -->
-            <TextBlock Text="About" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,12" />
+                <StackPanel MaxWidth="800" HorizontalAlignment="Left" Margin="0,0,0,40">
 
-            <Border Style="{DynamicResource FluentCardStyle}">
-                <StackPanel>
-                    <TextBlock Text="Modern Windows Task Manager" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock Text="Built with WPF, .NET 10 LTS, Clean Architecture, and Fluent Design System" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,8"/>
-                    <TextBlock Text="{Binding AppVersion, StringFormat='Version: {0}'}" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    <!-- Status Notification Banner -->
+                    <Border Background="{DynamicResource SubtleSelectedBrush}" 
+                            BorderBrush="{DynamicResource AccentBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="6" 
+                            Padding="14,10" 
+                            Margin="0,0,0,16"
+                            Visibility="{Binding StatusMessage, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding StatusMessage}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Appearance Section -->
+                    <TextBlock Text="Appearance" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10" />
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="App Theme" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Choose between Windows Fluent Dark, Light, or System default theme" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Dark" Command="{Binding SwitchThemeCommand}" CommandParameter="{x:Static enums:AppTheme.Dark}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,6,0" />
+                                <Button Content="Light" Command="{Binding SwitchThemeCommand}" CommandParameter="{x:Static enums:AppTheme.Light}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,6,0" />
+                                <Button Content="System" Command="{Binding SwitchThemeCommand}" CommandParameter="{x:Static enums:AppTheme.System}" Style="{DynamicResource FluentSecondaryButtonStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Monitoring Parameters Section -->
+                    <TextBlock Text="Monitoring Parameters" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,10" />
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="220"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Refresh Interval" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Frequency of real-time CPU, RAM, Disk, and Process metric updates" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailableIntervals}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Milliseconds"
+                                      SelectedValue="{Binding SelectedRefreshIntervalMs}"
+                                      VerticalAlignment="Center"
+                                      Padding="10,6"
+                                      FontSize="13"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Application Behavior Section -->
+                    <TextBlock Text="Window &amp; Application Behavior" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,10" />
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Always on top" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Keep the Task Manager window floating above other desktop windows" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding AlwaysOnTop}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Confirm destructive actions" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Prompt for confirmation before terminating processes or ending process trees" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding ConfirmDestructiveActions}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Minimize to system tray" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Minimize Task Manager to notification tray area instead of taskbar" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding MinimizeToTray}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Start minimized" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Launch Task Manager minimized to tray/taskbar on Windows startup" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" IsChecked="{Binding StartMinimized}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Telemetry & History Retention Section -->
+                    <TextBlock Text="Telemetry &amp; History Persistence" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,10" />
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="220"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Metric History Retention" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="How long performance snapshots are retained in local SQLite database" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailableRetentions}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Hours"
+                                      SelectedValue="{Binding HistoryRetentionHours}"
+                                      VerticalAlignment="Center"
+                                      Padding="10,6"
+                                      FontSize="13"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Purge History Cache" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Immediately wipe stored performance metrics history from disk" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" 
+                                    Content="Purge Now" 
+                                    Command="{Binding PurgeHistoryCommand}" 
+                                    Style="{DynamicResource FluentSecondaryButtonStyle}" 
+                                    Foreground="#FFFF4444"
+                                    VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Save / Revert Action Bar -->
+                    <Border Background="{DynamicResource CardBackgroundBrush}" 
+                            BorderBrush="{DynamicResource CardBorderBrush}" 
+                            BorderThickness="1" 
+                            CornerRadius="8" 
+                            Padding="16" 
+                            Margin="0,8,0,16">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Configuration State" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Save your preferences to persist them across app sessions" 
+                                           FontSize="12" 
+                                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Revert" 
+                                        Command="{Binding RevertSettingsCommand}" 
+                                        IsEnabled="{Binding IsDirty}"
+                                        Style="{DynamicResource FluentSecondaryButtonStyle}" 
+                                        Margin="0,0,10,0" />
+                                <Button Content="Save Changes" 
+                                        Command="{Binding SaveSettingsCommand}" 
+                                        IsEnabled="{Binding IsDirty}"
+                                        Style="{DynamicResource FluentPrimaryButtonStyle}" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- About Section -->
+                    <TextBlock Text="About" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,8,0,10" />
+
+                    <Border Style="{DynamicResource FluentCardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Modern Windows Task Manager" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Built with WPF, .NET 10 LTS, Clean Architecture, and Fluent Design System" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,8"/>
+                            <TextBlock Text="{Binding AppVersion, StringFormat='Version: {0}'}" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+
                 </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+            </ScrollViewer>
+
+            <!-- TAB 1: DIAGNOSTICS & LOG VIEWER -->
+            <Grid>
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedTabIndex}" Value="1">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Diagnostics Toolbar -->
+                <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="260"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Log Level Selector -->
+                        <ComboBox Grid.Column="0" 
+                                  ItemsSource="{Binding AvailableLogLevels}" 
+                                  SelectedItem="{Binding SelectedLogLevel}"
+                                  Padding="8,5" 
+                                  Margin="0,0,10,0"
+                                  VerticalAlignment="Center"/>
+
+                        <!-- Search Query Input -->
+                        <TextBox Grid.Column="1" 
+                                 Text="{Binding LogSearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{DynamicResource FluentTextBoxStyle}"
+                                 Tag="Search logs..."
+                                 Margin="0,0,10,0"
+                                 VerticalAlignment="Center"/>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Refresh" 
+                                    Command="{Binding RefreshLogsCommand}" 
+                                    Style="{DynamicResource FluentSecondaryButtonStyle}" 
+                                    Margin="0,0,8,0"/>
+                            <Button Content="Open Folder" 
+                                    Command="{Binding OpenLogDirectoryCommand}" 
+                                    Style="{DynamicResource FluentSecondaryButtonStyle}" 
+                                    Margin="0,0,8,0"/>
+                            <Button Content="Clear Logs" 
+                                    Command="{Binding ClearLogsCommand}" 
+                                    Style="{DynamicResource FluentSecondaryButtonStyle}" 
+                                    Foreground="#FFFF4444"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Logs DataGrid -->
+                <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="0" ClipToBounds="True">
+                    <DataGrid ItemsSource="{Binding LogEntries}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              SelectionMode="Single"
+                              GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="{DynamicResource CardBorderBrush}"
+                              Background="Transparent"
+                              RowBackground="Transparent"
+                              AlternatingRowBackground="{DynamicResource SubtleHoverBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              BorderThickness="0"
+                              RowHeight="36"
+                              EnableRowVirtualization="True"
+                              VirtualizingStackPanel.IsVirtualizing="True"
+                              VirtualizingStackPanel.VirtualizationMode="Recycling"
+                              ScrollViewer.CanContentScroll="True">
+
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+                                <Setter Property="Padding" Value="12,8"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+                            </Style>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="10,6"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridCell">
+                                            <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                                <ContentPresenter VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGrid.Resources>
+
+                        <DataGrid.Columns>
+                            <!-- Timestamp -->
+                            <DataGridTextColumn Header="Timestamp" 
+                                                Binding="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss.fff}'}" 
+                                                Width="180"/>
+
+                            <!-- Level with colored badge -->
+                            <DataGridTemplateColumn Header="Level" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4" 
+                                                Padding="8,2" 
+                                                HorizontalAlignment="Left"
+                                                Background="{Binding Level, Converter={StaticResource LogLevelToColorConverter}, ConverterParameter=0.15}">
+                                            <TextBlock Text="{Binding Level}" 
+                                                       FontWeight="SemiBold" 
+                                                       FontSize="11" 
+                                                       Foreground="#FFFFFF"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <!-- Message -->
+                            <DataGridTextColumn Header="Message" 
+                                                Binding="{Binding Message}" 
+                                                Width="*"/>
+
+                            <!-- Exception Details -->
+                            <DataGridTextColumn Header="Exception" 
+                                                Binding="{Binding Exception}" 
+                                                Width="250"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <!-- Footer Summary Bar -->
+                <Border Grid.Row="2" Margin="0,10,0,0">
+                    <Grid>
+                        <TextBlock Text="{Binding TotalLogCount, StringFormat='Showing {0} diagnostic log entries'}" 
+                                   FontSize="12" 
+                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <ProgressBar IsIndeterminate="True" 
+                                     Width="120" 
+                                     Height="4" 
+                                     HorizontalAlignment="Right" 
+                                     Visibility="{Binding IsLoadingLogs, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+
+        </Grid>
+    </Grid>
 </UserControl>

@@ -1,8 +1,11 @@
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TaskManager.Application.Common.Interfaces;
 using TaskManager.Application.Monitoring.Interfaces;
 using TaskManager.Application.Monitoring.Models;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.Infrastructure.Monitoring;
 
@@ -15,12 +18,16 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
     private readonly IGpuMonitor _gpuMonitor;
     private readonly IProcessMonitor _processMonitor;
     private readonly ILogger<MonitoringCoordinator> _logger;
+    private readonly IServiceScopeFactory? _scopeFactory;
 
     private readonly SemaphoreSlim _cycleLock = new(1, 1);
     private CancellationTokenSource? _cts;
     private Task? _executionTask;
     private TimeSpan _interval = TimeSpan.FromSeconds(1);
+    private PeriodicTimer? _activeTimer;
     private int _isRunning;
+    private DateTime _lastHistoryPersist = DateTime.MinValue;
+    private DateTime _lastPruneTime = DateTime.MinValue;
 
     public bool IsRunning => Volatile.Read(ref _isRunning) == 1;
 
@@ -32,6 +39,17 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
             if (value < TimeSpan.FromMilliseconds(200))
                 value = TimeSpan.FromMilliseconds(200);
             _interval = value;
+            if (_activeTimer != null)
+            {
+                try
+                {
+                    _activeTimer.Period = _interval;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Could not dynamically adjust PeriodicTimer.Period");
+                }
+            }
         }
     }
 
@@ -45,7 +63,8 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
         INetworkMonitor networkMonitor,
         IGpuMonitor gpuMonitor,
         IProcessMonitor processMonitor,
-        ILogger<MonitoringCoordinator> logger)
+        ILogger<MonitoringCoordinator> logger,
+        IServiceScopeFactory? scopeFactory = null)
     {
         _cpuMonitor = cpuMonitor;
         _memoryMonitor = memoryMonitor;
@@ -54,6 +73,7 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
         _gpuMonitor = gpuMonitor;
         _processMonitor = processMonitor;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     public Task StartAsync(CancellationToken cancellationToken = default)
@@ -99,6 +119,7 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
     private async Task RunMonitoringLoopAsync(CancellationToken cancellationToken)
     {
         using var timer = new PeriodicTimer(_interval);
+        _activeTimer = timer;
 
         // Immediate first refresh
         await ExecuteMonitoringCycleSafelyAsync(cancellationToken);
@@ -121,6 +142,8 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
                 _logger.LogError(ex, "Unexpected error in monitoring timer loop.");
             }
         }
+
+        _activeTimer = null;
     }
 
     private async Task ExecuteMonitoringCycleSafelyAsync(CancellationToken cancellationToken)
@@ -173,6 +196,13 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
             // Publish thread-safe notifications
             try { SystemOverviewUpdated?.Invoke(overview); } catch (Exception ex) { _logger.LogWarning(ex, "Subscriber error on SystemOverviewUpdated."); }
             try { ProcessesUpdated?.Invoke(processDelta); } catch (Exception ex) { _logger.LogWarning(ex, "Subscriber error on ProcessesUpdated."); }
+
+            // Periodically persist metrics
+            if (_scopeFactory != null && (DateTime.UtcNow - _lastHistoryPersist) >= TimeSpan.FromSeconds(2))
+            {
+                _lastHistoryPersist = DateTime.UtcNow;
+                _ = PersistHistoryRecordAsync(overview, cancellationToken);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -185,6 +215,41 @@ public class MonitoringCoordinator : IMonitoringCoordinator, IHostedService, IAs
         finally
         {
             _cycleLock.Release();
+        }
+    }
+
+    private async Task PersistHistoryRecordAsync(SystemOverviewSnapshot overview, CancellationToken ct)
+    {
+        try
+        {
+            using var scope = _scopeFactory!.CreateScope();
+            var repo = scope.ServiceProvider.GetService<IMetricHistoryRepository>();
+            if (repo == null) return;
+
+            double diskActive = overview.Disks.Count > 0 ? overview.Disks.Max(d => d.ActiveTimePercent) : 0;
+            double netMbps = overview.Networks.Sum(n => (n.SendSpeedBytesPerSec + n.ReceiveSpeedBytesPerSec) * 8.0 / 1_000_000.0);
+
+            var record = new MetricHistoryRecord(
+                overview.Timestamp,
+                overview.Cpu.OverallUtilizationPercent,
+                overview.Memory.UtilizationPercent,
+                diskActive,
+                netMbps);
+
+            await repo.AddRecordAsync(record, ct);
+
+            // Periodic pruning every 5 minutes
+            if ((DateTime.UtcNow - _lastPruneTime) >= TimeSpan.FromMinutes(5))
+            {
+                _lastPruneTime = DateTime.UtcNow;
+                var settingsService = scope.ServiceProvider.GetService<ISettingsService>();
+                int retentionHours = settingsService?.CurrentSettings.HistoryRetentionHours ?? 24;
+                await repo.PruneRecordsOlderThanAsync(DateTime.UtcNow.AddHours(-retentionHours), ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogTrace(ex, "Failed to persist periodic history record.");
         }
     }
 

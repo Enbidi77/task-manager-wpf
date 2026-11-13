@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using TaskManager.Domain.Entities;
 
 namespace TaskManager.Infrastructure.Data;
 
 public class TaskManagerDbContext : DbContext
 {
-    public DbSet<PerformanceSnapshotEntity> PerformanceSnapshots => Set<PerformanceSnapshotEntity>();
-    public DbSet<UserPreferenceEntity> UserPreferences => Set<UserPreferenceEntity>();
+    public DbSet<UserSettingEntity> UserSettings => Set<UserSettingEntity>();
+    public DbSet<MetricHistoryRecord> MetricHistory => Set<MetricHistoryRecord>();
+    public DbSet<ProcessFilterEntity> ProcessFilters => Set<ProcessFilterEntity>();
 
     public TaskManagerDbContext(DbContextOptions<TaskManagerDbContext> options) : base(options)
     {
@@ -15,32 +17,28 @@ public class TaskManagerDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<PerformanceSnapshotEntity>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Timestamp).IsRequired();
-        });
-
-        modelBuilder.Entity<UserPreferenceEntity>(entity =>
+        modelBuilder.Entity<UserSettingEntity>(entity =>
         {
             entity.HasKey(e => e.Key);
+            entity.Property(e => e.Key).HasMaxLength(128);
             entity.Property(e => e.Value).IsRequired();
+            entity.Property(e => e.UpdatedAtUtc).IsRequired();
+        });
+
+        modelBuilder.Entity<MetricHistoryRecord>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Timestamp).IsRequired();
+            entity.HasIndex(e => e.Timestamp);
+        });
+
+        modelBuilder.Entity<ProcessFilterEntity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.ProcessName).HasMaxLength(256).IsRequired();
+            entity.HasIndex(e => e.ProcessName);
         });
     }
-}
-
-public class PerformanceSnapshotEntity
-{
-    public int Id { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public double CpuPercent { get; set; }
-    public double MemoryPercent { get; set; }
-    public double DiskPercent { get; set; }
-    public double NetworkMbps { get; set; }
-}
-
-public class UserPreferenceEntity
-{
-    public string Key { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
 }
