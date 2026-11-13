@@ -1,26 +1,79 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using TaskManager.Application.Common;
-using TaskManager.Domain.Models;
+using TaskManager.Application.Monitoring.Interfaces;
 
 namespace TaskManager.Application.ViewModels.Users;
 
 public partial class UsersViewModel : ViewModelBase
 {
+    private readonly IUserSessionMonitor _userSessionMonitor;
+
     [ObservableProperty]
-    private UserSessionItem? _selectedUser;
+    private UserSessionSnapshot? _selectedUser;
 
-    public ObservableCollection<UserSessionItem> UserSessions { get; } = new();
+    [ObservableProperty]
+    private string _statusMessage = string.Empty;
 
-    public UsersViewModel()
+    public ObservableCollection<UserSessionSnapshot> UserSessions { get; } = new();
+
+    public Action<string>? ShowNotification { get; set; }
+
+    public UsersViewModel(IUserSessionMonitor userSessionMonitor)
     {
+        _userSessionMonitor = userSessionMonitor;
         Title = "Users";
-        LoadSampleUsers();
     }
 
-    private void LoadSampleUsers()
+    public override async Task InitializeAsync()
     {
-        UserSessions.Clear();
-        UserSessions.Add(new UserSessionItem(1) { UserName = Environment.UserName, SessionName = "Console", State = "Active", CpuPercent = 8.4, MemoryBytes = 4294967296, DiskBytesPerSec = 1048576, NetworkBytesPerSec = 524288 });
+        await LoadUserSessionsAsync();
+    }
+
+    [RelayCommand]
+    public async Task LoadUserSessionsAsync()
+    {
+        IsBusy = true;
+        try
+        {
+            var sessions = await _userSessionMonitor.GetSnapshotAsync();
+            UserSessions.Clear();
+            foreach (var session in sessions)
+            {
+                UserSessions.Add(session);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Failed to load user sessions: {ex.Message}";
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectSessionAsync()
+    {
+        if (SelectedUser == null) return;
+
+        int sessionId = SelectedUser.SessionId;
+        string userName = SelectedUser.UserName;
+
+        StatusMessage = $"Disconnecting session {sessionId} ({userName})...";
+        bool success = await _userSessionMonitor.DisconnectSessionAsync(sessionId);
+        if (success)
+        {
+            StatusMessage = $"Session {sessionId} disconnected.";
+            ShowNotification?.Invoke(StatusMessage);
+            await LoadUserSessionsAsync();
+        }
+        else
+        {
+            StatusMessage = $"Failed to disconnect session {sessionId}.";
+            ShowNotification?.Invoke(StatusMessage);
+        }
     }
 }

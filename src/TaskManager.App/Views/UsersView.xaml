@@ -3,36 +3,62 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
+             xmlns:converters="clr-namespace:TaskManager.App.Converters"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Users;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:UsersViewModel}">
+
+    <UserControl.Resources>
+        <converters:BytesToSizeConverter x:Key="BytesToSizeConverter" />
+    </UserControl.Resources>
 
     <Grid Margin="28,20,28,28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="Users" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16" />
 
-        <TextBlock Grid.Row="1" Text="Logged-in users and their resource consumption." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"/>
+        <!-- Command Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <TextBlock Text="Manage active user sessions and view per-user resource allocation." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
 
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Disconnect" Command="{Binding DisconnectSessionCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0" />
+                <Button Content="Refresh" Command="{Binding LoadUserSessionsCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Users DataGrid -->
         <Border Grid.Row="2" Style="{DynamicResource FluentCardStyle}" Padding="0">
             <DataGrid Style="{DynamicResource FluentDataGridStyle}"
                       ItemsSource="{Binding UserSessions}"
-                      SelectedItem="{Binding SelectedUser}">
+                      SelectedItem="{Binding SelectedUser}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="220"/>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="80"/>
+                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="200" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="Session ID" Binding="{Binding SessionId}" Width="100"/>
                     <DataGridTextColumn Header="Session" Binding="{Binding SessionName}" Width="140"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding State}" Width="120"/>
-                    <DataGridTextColumn Header="CPU %" Binding="{Binding CpuPercent, StringFormat='{}{0:F1}%'}" Width="120"/>
-                    <DataGridTextColumn Header="Memory" Binding="{Binding MemoryBytes, StringFormat='{}{0:N0} B'}" Width="160"/>
-                    <DataGridTextColumn Header="Disk" Binding="{Binding DiskBytesPerSec, StringFormat='{}{0:N0} B/s'}" Width="140"/>
-                    <DataGridTextColumn Header="Network" Binding="{Binding NetworkBytesPerSec, StringFormat='{}{0:N0} B/s'}" Width="*"/>
+                    <DataGridTemplateColumn Header="State" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <controls:StatusIndicator StatusText="{Binding State}" Margin="6,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Client Name" Binding="{Binding ClientName}" Width="140"/>
+                    <DataGridTextColumn Header="Processes" Binding="{Binding ProcessCount}" Width="110"/>
+                    <DataGridTextColumn Header="Memory" Binding="{Binding MemoryBytes, Converter={StaticResource BytesToSizeConverter}}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+
+        <!-- Status Message -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0"/>
     </Grid>
 </UserControl>

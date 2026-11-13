@@ -55,6 +55,7 @@ public partial class App : System.Windows.Application
                     services.AddInfrastructure(context.Configuration);
 
                     // App services
+                    services.AddSingleton<IDispatcherService, WpfDispatcherService>();
                     services.AddSingleton<INavigationService, NavigationService>();
                     services.AddSingleton<IThemeService, ThemeService>();
 

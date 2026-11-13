@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Services;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:ServicesViewModel}">
@@ -12,26 +13,27 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Header -->
         <TextBlock Text="Services" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16" />
 
         <!-- Command Bar -->
         <Grid Grid.Row="1" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox Style="{DynamicResource FluentTextBoxStyle}"
-                     Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}"
-                     Tag="Search services..." />
+            <controls:SearchBox Text="{Binding SearchFilter, Mode=TwoWay}" Placeholder="Search services..." />
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
                 <Button Content="Start" Command="{Binding StartServiceCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" Margin="0,0,8,0" />
                 <Button Content="Stop" Command="{Binding StopServiceCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0" />
-                <Button Content="Restart" Command="{Binding RestartServiceCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" />
+                <Button Content="Restart" Command="{Binding RestartServiceCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0" />
+                <Button Content="Refresh" Command="{Binding LoadServicesCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" />
             </StackPanel>
         </Grid>
 
@@ -39,16 +41,27 @@
         <Border Grid.Row="2" Style="{DynamicResource FluentCardStyle}" Padding="0">
             <DataGrid Style="{DynamicResource FluentDataGridStyle}"
                       ItemsSource="{Binding Services}"
-                      SelectedItem="{Binding SelectedService}">
+                      SelectedItem="{Binding SelectedService}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      EnableRowVirtualization="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Id}" Width="160"/>
-                    <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="80"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding ServiceName}" Width="160" FontWeight="SemiBold"/>
                     <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="260"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
-                    <DataGridTextColumn Header="Startup Type" Binding="{Binding StartupType}" Width="150"/>
+                    <DataGridTemplateColumn Header="Status" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <controls:StatusIndicator StatusText="{Binding Status}" Margin="6,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Startup Type" Binding="{Binding StartupType}" Width="140"/>
                     <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+
+        <!-- Status Message -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0"/>
     </Grid>
 </UserControl>

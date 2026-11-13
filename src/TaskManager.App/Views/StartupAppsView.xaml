@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.StartupApps;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:StartupAppsViewModel}">
@@ -12,29 +13,53 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TextBlock Text="Startup Apps" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16" />
 
         <!-- Command Bar -->
         <Grid Grid.Row="1" Margin="0,0,0,16">
-            <TextBlock Text="Manage applications configured to run automatically at user logon." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-            <Button Content="Enable / Disable" Command="{Binding ToggleStatusCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" HorizontalAlignment="Right"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <controls:SearchBox Text="{Binding SearchFilter, Mode=TwoWay}" Placeholder="Search startup apps..." />
+
+            <StackPanel Grid.Column="2" Orientation="Horizontal">
+                <Button Content="Enable / Disable" Command="{Binding ToggleStatusCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" Margin="0,0,8,0" />
+                <Button Content="Open File Location" Command="{Binding OpenFileLocationCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0" />
+                <Button Content="Refresh" Command="{Binding LoadStartupAppsCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" />
+            </StackPanel>
         </Grid>
 
         <!-- Startup Apps DataGrid -->
         <Border Grid.Row="2" Style="{DynamicResource FluentCardStyle}" Padding="0">
             <DataGrid Style="{DynamicResource FluentDataGridStyle}"
                       ItemsSource="{Binding StartupApps}"
-                      SelectedItem="{Binding SelectedStartupApp}">
+                      SelectedItem="{Binding SelectedStartupApp}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="240"/>
-                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="220"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120"/>
-                    <DataGridTextColumn Header="Startup Impact" Binding="{Binding StartupImpact}" Width="140"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="240" FontWeight="SemiBold"/>
+                    <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="200"/>
+                    <DataGridTemplateColumn Header="Status" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <controls:StatusIndicator StatusText="{Binding Status}" Margin="6,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Startup Impact" Binding="{Binding StartupImpact}" Width="130"/>
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}" Width="160"/>
                     <DataGridTextColumn Header="Command" Binding="{Binding Command}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+
+        <!-- Status Message -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0"/>
     </Grid>
 </UserControl>

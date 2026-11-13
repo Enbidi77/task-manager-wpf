@@ -3,55 +3,108 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
+             xmlns:converters="clr-namespace:TaskManager.App.Converters"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Processes;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:ProcessesViewModel}">
+
+    <UserControl.Resources>
+        <converters:BytesToSizeConverter x:Key="BytesToSizeConverter" />
+    </UserControl.Resources>
 
     <Grid Margin="28,20,28,28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Text="Processes" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16" />
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel DockPanel.Dock="Left">
+                <TextBlock Text="Processes" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                <TextBlock Text="{Binding TotalProcesses, StringFormat='{}{0} active processes'}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
 
-        <!-- Command Bar / Search -->
-        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
+                <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0"/>
+                <Button Content="End Task" Command="{Binding EndTaskCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" Background="{DynamicResource ErrorBrush}" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Command & Filter Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,14">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
             <!-- Search box -->
-            <TextBox Style="{DynamicResource FluentTextBoxStyle}"
-                     Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}"
-                     Tag="Search processes (e.g. explorer)" />
-
-            <!-- Action buttons -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                <Button Content="Refresh" Command="{Binding RefreshCommand}" Style="{DynamicResource FluentSecondaryButtonStyle}" Margin="0,0,8,0" />
-                <Button Content="End Task" Command="{Binding EndTaskCommand}" Style="{DynamicResource FluentPrimaryButtonStyle}" />
-            </StackPanel>
+            <controls:SearchBox Text="{Binding SearchFilter, Mode=TwoWay}" Placeholder="Search by name or PID..." />
         </Grid>
 
         <!-- Process DataGrid -->
         <Border Grid.Row="2" Style="{DynamicResource FluentCardStyle}" Padding="0">
             <DataGrid Style="{DynamicResource FluentDataGridStyle}"
                       ItemsSource="{Binding Processes}"
-                      SelectedItem="{Binding SelectedProcess}">
+                      SelectedItem="{Binding SelectedProcess}"
+                      VirtualizingStackPanel.IsVirtualizing="True"
+                      VirtualizingStackPanel.VirtualizationMode="Recycling"
+                      EnableRowVirtualization="True">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="End Task" Command="{Binding EndTaskCommand}">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource ErrorBrush}"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="End Process Tree" Command="{Binding EndProcessTreeCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Set Priority">
+                            <MenuItem Header="Realtime" Command="{Binding SetPriorityCommand}" CommandParameter="RealTime"/>
+                            <MenuItem Header="High" Command="{Binding SetPriorityCommand}" CommandParameter="High"/>
+                            <MenuItem Header="Above Normal" Command="{Binding SetPriorityCommand}" CommandParameter="AboveNormal"/>
+                            <MenuItem Header="Normal" Command="{Binding SetPriorityCommand}" CommandParameter="Normal"/>
+                            <MenuItem Header="Below Normal" Command="{Binding SetPriorityCommand}" CommandParameter="BelowNormal"/>
+                            <MenuItem Header="Low / Idle" Command="{Binding SetPriorityCommand}" CommandParameter="Idle"/>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Open File Location" Command="{Binding OpenFileLocationCommand}">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xED25;" FontFamily="Segoe MDL2 Assets"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Copy Details" Command="{Binding CopyDetailsCommand}">
+                            <MenuItem.Icon>
+                                <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="PID" Binding="{Binding Id}" Width="80"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="250"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="110"/>
-                    <DataGridTextColumn Header="CPU %" Binding="{Binding CpuPercent, StringFormat='{}{0:F1}%'}" Width="100"/>
-                    <DataGridTextColumn Header="Memory (Bytes)" Binding="{Binding WorkingSetBytes, StringFormat='{}{0:N0}'}" Width="140"/>
-                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="120"/>
-                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220" FontWeight="SemiBold"/>
+                    <DataGridTemplateColumn Header="Status" Width="130">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <controls:StatusIndicator StatusText="{Binding Status}" Margin="6,0"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="CPU %" Binding="{Binding CpuPercent, StringFormat='{}{0:F1}%'}" Width="90"/>
+                    <DataGridTextColumn Header="Memory" Binding="{Binding WorkingSetBytes, Converter={StaticResource BytesToSizeConverter}}" Width="110"/>
+                    <DataGridTextColumn Header="Disk" Binding="{Binding DiskSpeedBytesPerSec, Converter={StaticResource BytesToSizeConverter}}" Width="110"/>
+                    <DataGridTextColumn Header="Arch" Binding="{Binding Architecture}" Width="70"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding ProcessType}" Width="100"/>
+                    <DataGridTextColumn Header="Executable Path" Binding="{Binding ExecutablePath}" Width="*"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Border>
+
+        <!-- Status message footer -->
+        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="4,8,0,0"/>
     </Grid>
 </UserControl>

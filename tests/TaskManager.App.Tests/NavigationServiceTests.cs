@@ -2,6 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TaskManager.App.Navigation;
+using TaskManager.Application.Monitoring.Interfaces;
 using TaskManager.Application.ViewModels.Dashboard;
 using TaskManager.Application.ViewModels.Processes;
 using TaskManager.Shared.Enums;
@@ -13,13 +14,15 @@ public class NavigationServiceTests
 {
     private readonly Mock<IServiceProvider> _mockServiceProvider = new();
     private readonly Mock<ILogger<NavigationService>> _mockLogger = new();
+    private readonly Mock<IMonitoringCoordinator> _mockCoordinator = new();
+    private readonly Mock<IProcessMonitor> _mockProcessMonitor = new();
 
     [Fact]
     public void NavigateTo_ChangesCurrentViewModelAndPage()
     {
         // Arrange
-        var dashboardVm = new DashboardViewModel();
-        var processesVm = new ProcessesViewModel();
+        var dashboardVm = new DashboardViewModel(_mockCoordinator.Object);
+        var processesVm = new ProcessesViewModel(_mockCoordinator.Object, _mockProcessMonitor.Object);
 
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(DashboardViewModel))).Returns(dashboardVm);
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(ProcessesViewModel))).Returns(processesVm);

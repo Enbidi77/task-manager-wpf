@@ -3,94 +3,111 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
+             xmlns:converters="clr-namespace:TaskManager.App.Converters"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Dashboard;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:DashboardViewModel}">
 
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="28,20,28,28">
             <!-- Header -->
-            <TextBlock Text="Dashboard" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6" />
-            <TextBlock Text="System performance overview and active utilization" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,24" />
+            <TextBlock Text="Dashboard" FontSize="26" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4" />
+            <TextBlock Text="Real-time system telemetry and hardware performance metrics" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16" />
 
-            <!-- Core Metrics Cards Grid -->
-            <UniformGrid Columns="4" Margin="0,0,0,24">
-                <!-- CPU Card -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,12,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="CPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}%'}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                        <ProgressBar Grid.Row="2" Value="{Binding CpuUsagePercent}" Maximum="100" Height="6" Background="{DynamicResource SubtleSelectedBrush}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Grid.Row="3" Text="Intel(R) Core(TM) i9-14900K" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                    </Grid>
-                </Border>
+            <!-- High Utilization Alert Banner -->
+            <Border Background="#2B1A00" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,16">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCpuHighAlert}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsMemoryHighAlert}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="High Resource Consumption Alert: System usage has exceeded 80% threshold." FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Border>
 
-                <!-- Memory Card -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="6,0,6,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="&#xE7F8;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Memory" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Text="{Binding MemoryUsagePercent, StringFormat='{}{0:F1}%'}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                        <ProgressBar Grid.Row="2" Value="{Binding MemoryUsagePercent}" Maximum="100" Height="6" Background="{DynamicResource SubtleSelectedBrush}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Grid.Row="3" Text="18.6 / 32.0 GB in use" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                    </Grid>
-                </Border>
+            <!-- Metric Cards Grid (CPU, Memory, Disk, Network) -->
+            <UniformGrid Columns="4" Margin="0,0,0,20">
+                <controls:MetricCard Margin="0,0,10,0"
+                                     Title="CPU"
+                                     IconGlyph="&#xE9D9;"
+                                     ValueText="{Binding CpuUsagePercent, StringFormat='{}{0:F1}%'}"
+                                     PercentageValue="{Binding CpuUsagePercent}"
+                                     DetailText="{Binding CpuDetailText}"/>
 
-                <!-- Disk Card -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="6,0,6,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="&#xEDA2;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Disk (C:)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Text="{Binding DiskUsagePercent, StringFormat='{}{0:F0}%'}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                        <ProgressBar Grid.Row="2" Value="{Binding DiskUsagePercent}" Maximum="100" Height="6" Background="{DynamicResource SubtleSelectedBrush}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Grid.Row="3" Text="NVMe SSD (450 KB/s)" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                    </Grid>
-                </Border>
+                <controls:MetricCard Margin="5,0,5,0"
+                                     Title="Memory"
+                                     IconGlyph="&#xE7F8;"
+                                     ValueText="{Binding MemoryUsagePercent, StringFormat='{}{0:F1}%'}"
+                                     PercentageValue="{Binding MemoryUsagePercent}"
+                                     DetailText="{Binding MemoryDetailText}"/>
 
-                <!-- Network Card -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="12,0,0,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                            <TextBlock Text="&#xE968;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="Ethernet" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Grid.Row="1" Text="{Binding NetworkUsageMbps, StringFormat='{}{0:F1} Mbps'}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                        <ProgressBar Grid.Row="2" Value="{Binding NetworkUsageMbps}" Maximum="100" Height="6" Background="{DynamicResource SubtleSelectedBrush}" Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Grid.Row="3" Text="S: 1.2 Mbps / R: 14.2 Mbps" FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                    </Grid>
-                </Border>
+                <controls:MetricCard Margin="5,0,5,0"
+                                     Title="Disk (Active)"
+                                     IconGlyph="&#xEDA2;"
+                                     ValueText="{Binding DiskUsagePercent, StringFormat='{}{0:F0}%'}"
+                                     PercentageValue="{Binding DiskUsagePercent}"
+                                     DetailText="{Binding DiskDetailText}"/>
+
+                <controls:MetricCard Margin="10,0,0,0"
+                                     Title="Network"
+                                     IconGlyph="&#xE968;"
+                                     ValueText="{Binding NetworkUsageMbps, StringFormat='{}{0:F1} Mbps'}"
+                                     PercentageValue="{Binding NetworkUsageMbps}"
+                                     DetailText="{Binding NetworkDetailText}"/>
             </UniformGrid>
+
+            <!-- Real-time Historical Charts Grid -->
+            <TextBlock Text="Historical Trends (60 Seconds)" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12" />
+
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="160"/>
+                    <RowDefinition Height="160"/>
+                </Grid.RowDefinitions>
+
+                <!-- CPU Chart -->
+                <controls:PerformanceChart Grid.Row="0" Grid.Column="0" Margin="0,0,10,12"
+                                           HeaderText="CPU Utilization History (%)"
+                                           StrokeBrush="{DynamicResource AccentBrush}"
+                                           Values="{Binding CpuHistory}"/>
+
+                <!-- Memory Chart -->
+                <controls:PerformanceChart Grid.Row="0" Grid.Column="1" Margin="0,0,0,12"
+                                           HeaderText="Memory Utilization History (%)"
+                                           StrokeBrush="#A050DF"
+                                           Values="{Binding MemoryHistory}"/>
+
+                <!-- Disk Chart -->
+                <controls:PerformanceChart Grid.Row="1" Grid.Column="0" Margin="0,0,10,0"
+                                           HeaderText="Disk Active Time (%)"
+                                           StrokeBrush="#0F7B0F"
+                                           Values="{Binding DiskHistory}"/>
+
+                <!-- Network Chart -->
+                <controls:PerformanceChart Grid.Row="1" Grid.Column="1" Margin="0,0,0,0"
+                                           HeaderText="Network Throughput (%)"
+                                           StrokeBrush="#D89B00"
+                                           Values="{Binding NetworkHistory}"/>
+            </Grid>
 
             <!-- Secondary Metrics Section -->
             <Border Style="{DynamicResource FluentCardStyle}">

@@ -3,9 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:TaskManager.App.Controls"
+             xmlns:converters="clr-namespace:TaskManager.App.Converters"
              xmlns:vm="clr-namespace:TaskManager.Application.ViewModels.Performance;assembly=TaskManager.Application"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:PerformanceViewModel}">
+
+    <UserControl.Resources>
+        <converters:BytesToSizeConverter x:Key="BytesToSizeConverter" />
+    </UserControl.Resources>
 
     <Grid Margin="28,20,28,28">
         <Grid.RowDefinitions>
@@ -18,137 +24,419 @@
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="270"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Metric Selector List -->
+            <!-- Master Metric Selector List -->
             <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                <!-- CPU Selector -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,8" Cursor="Hand" Background="{DynamicResource SubtleSelectedBrush}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="CPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding CurrentCpuUsage, StringFormat='{}{0:F1}% {1:F2} GHz', ConverterParameter={x:Null}}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                <!-- CPU -->
+                <Button Command="{Binding SelectTabCommand}" CommandParameter="CPU"
+                        Background="Transparent" BorderThickness="0" Margin="0,0,0,8" Padding="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FluentCardStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="CPU">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="CPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext.CpuUsagePercent, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:F1}%'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="&#xE9D9;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
 
-                <!-- Memory Selector -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,8" Cursor="Hand">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Memory" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding MemoryInUseGb, StringFormat='{}{0:F1}/16.0 GB (59%)'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="&#xE7F8;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                <!-- Memory -->
+                <Button Command="{Binding SelectTabCommand}" CommandParameter="Memory"
+                        Background="Transparent" BorderThickness="0" Margin="0,0,0,8" Padding="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FluentCardStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Memory">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Memory" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext.MemoryInUseGb, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:F1} GB in use'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="&#xE7F8;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
 
-                <!-- Disk Selector -->
-                <Border Style="{DynamicResource FluentCardStyle}" Margin="0,0,0,8" Cursor="Hand">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Disk 0 (C: SSD)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="{Binding DiskActivePercent, StringFormat='{}{0:F0}%'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="&#xEDA2;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                <!-- Disk -->
+                <Button Command="{Binding SelectTabCommand}" CommandParameter="Disk"
+                        Background="Transparent" BorderThickness="0" Margin="0,0,0,8" Padding="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FluentCardStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Disk">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Disk" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext.DiskActivePercent, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:F0}% Active'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="&#xEDA2;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
 
-                <!-- Ethernet Selector -->
-                <Border Style="{DynamicResource FluentCardStyle}" Cursor="Hand">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="Ethernet" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="S: 32 Kbps / R: 1.4 Mbps" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <TextBlock Grid.Column="1" Text="&#xE968;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                    </Grid>
-                </Border>
+                <!-- Network -->
+                <Button Command="{Binding SelectTabCommand}" CommandParameter="Network"
+                        Background="Transparent" BorderThickness="0" Margin="0,0,0,8" Padding="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FluentCardStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="Network">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Ethernet" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext.NetworkReceiveKbps, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}R: {0:F0} Kbps'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="&#xE968;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- GPU -->
+                <Button Command="{Binding SelectTabCommand}" CommandParameter="GPU"
+                        Background="Transparent" BorderThickness="0" Padding="0" Cursor="Hand">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource FluentCardStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataContext.SelectedTab, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="GPU">
+                                                <Setter Property="Background" Value="{DynamicResource SubtleSelectedBrush}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="GPU" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DataContext.GpuUsagePercent, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:F1}%'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="18" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </StackPanel>
 
-            <!-- Detailed Graph & Stats View -->
+            <!-- Detailed Panel for Selected Metric -->
             <Border Grid.Column="1" Style="{DynamicResource FluentCardStyle}">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                    <!-- CPU Detail View -->
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTab}" Value="CPU">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                    <DockPanel LastChildFill="False" Margin="0,0,0,16">
-                        <TextBlock Text="CPU" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
-                        <TextBlock Text="Intel(R) Core(TM) i9-14900K Processor" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
-                    </DockPanel>
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="CPU" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                            <TextBlock Text="{Binding CpuSpeedGhz, StringFormat='{}{0:F2} GHz Speed'}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
 
-                    <!-- Graph Canvas Placeholder / Area -->
-                    <Border Grid.Row="1" Background="{DynamicResource ContentBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Margin="0,0,0,16">
-                        <Grid>
-                            <TextBlock Text="% Utilization (60 Seconds History)" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,8" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                            <TextBlock Text="100%" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="12,8" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                            <TextBlock Text="0%" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12,8" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                        <controls:PerformanceChart Grid.Row="1" Margin="0,0,0,16"
+                                                   HeaderText="% Utilization (60 Seconds History)"
+                                                   StrokeBrush="{DynamicResource AccentBrush}"
+                                                   Values="{Binding CpuHistory}"/>
 
-                            <!-- Mock Real-time Wave preview -->
-                            <Path Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" VerticalAlignment="Bottom" Margin="0,0,0,20"
-                                  Data="M 0,120 Q 50,40 100,90 T 200,60 T 300,100 T 400,30 T 500,80 T 600,45 L 600,160 L 0,160 Z">
-                                <Path.Fill>
-                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                        <GradientStop Color="#4060CDFF" Offset="0.0"/>
-                                        <GradientStop Color="#0560CDFF" Offset="1.0"/>
-                                    </LinearGradientBrush>
-                                </Path.Fill>
-                            </Path>
-                        </Grid>
-                    </Border>
+                        <UniformGrid Grid.Row="2" Columns="4">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Utilization" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding CpuUsagePercent, StringFormat='{}{0:F1}%'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Speed" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding CpuSpeedGhz, StringFormat='{}{0:F2} GHz'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Processes" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding CpuProcesses}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Threads" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding CpuThreads}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Handles" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding CpuHandles}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Up Time" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding CpuUptime}" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Cores" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding CpuCores}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Logical processors" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding CpuLogicalProcessors}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Grid>
 
-                    <!-- Technical Specs Grid -->
-                    <UniformGrid Grid.Row="2" Columns="4">
-                        <StackPanel Margin="0,0,12,0">
-                            <TextBlock Text="Utilization" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding CurrentCpuUsage, StringFormat='{}{0:F1}%'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Speed" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
-                            <TextBlock Text="{Binding CpuSpeedGhz, StringFormat='{}{0:F2} GHz'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </StackPanel>
+                    <!-- Memory Detail View -->
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTab}" Value="Memory">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                        <StackPanel Margin="6,0,6,0">
-                            <TextBlock Text="Processes" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding CpuProcesses}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Threads" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
-                            <TextBlock Text="{Binding CpuThreads}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </StackPanel>
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="Memory" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                            <TextBlock Text="{Binding MemoryTotalGb, StringFormat='{}{0:F1} GB Total'}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
 
-                        <StackPanel Margin="6,0,6,0">
-                            <TextBlock Text="Handles" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding CpuHandles}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Sockets" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
-                            <TextBlock Text="1" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </StackPanel>
+                        <controls:PerformanceChart Grid.Row="1" Margin="0,0,0,16"
+                                                   HeaderText="Memory Composition (60 Seconds)"
+                                                   StrokeBrush="#A050DF"
+                                                   Values="{Binding MemoryHistory}"/>
 
-                        <StackPanel Margin="12,0,0,0">
-                            <TextBlock Text="Cores" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="24 (8P + 16E)" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Logical processors" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0"/>
-                            <TextBlock Text="32" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        </StackPanel>
-                    </UniformGrid>
+                        <UniformGrid Grid.Row="2" Columns="4">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="In use" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding MemoryInUseGb, StringFormat='{}{0:F1} GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Available" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding MemoryAvailableGb, StringFormat='{}{0:F1} GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Committed" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding MemoryCommittedGb, StringFormat='{}{0:F1} GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Commit Limit" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding MemoryCommitLimitGb, StringFormat='{}{0:F1} GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Grid>
+
+                    <!-- Disk Detail View -->
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTab}" Value="Disk">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="{Binding DiskName, StringFormat='{}Disk ({0})'}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                            <TextBlock Text="{Binding DiskModel}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+
+                        <controls:PerformanceChart Grid.Row="1" Margin="0,0,0,16"
+                                                   HeaderText="Active Time (%)"
+                                                   StrokeBrush="#0F7B0F"
+                                                   Values="{Binding DiskHistory}"/>
+
+                        <UniformGrid Grid.Row="2" Columns="4">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Active Time" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding DiskActivePercent, StringFormat='{}{0:F0}%'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Read Speed" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding DiskReadSpeedKbps, StringFormat='{}{0:F0} KB/s'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Write Speed" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding DiskWriteSpeedKbps, StringFormat='{}{0:F0} KB/s'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Capacity" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding DiskCapacityGb, StringFormat='{}{0:F0} GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Grid>
+
+                    <!-- Network Detail View -->
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTab}" Value="Network">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="{Binding NetworkAdapterName}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                            <TextBlock Text="{Binding NetworkIpv4Address, StringFormat='{}IPv4: {0}'}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+
+                        <controls:PerformanceChart Grid.Row="1" Margin="0,0,0,16"
+                                                   HeaderText="Throughput (60 Seconds)"
+                                                   StrokeBrush="#D89B00"
+                                                   Values="{Binding NetworkHistory}"/>
+
+                        <UniformGrid Grid.Row="2" Columns="4">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Send Rate" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding NetworkSendKbps, StringFormat='{}{0:F0} Kbps'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Receive Rate" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding NetworkReceiveKbps, StringFormat='{}{0:F0} Kbps'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Bytes Sent" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding NetworkTotalBytesSent, Converter={StaticResource BytesToSizeConverter}}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Bytes Received" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding NetworkTotalBytesReceived, Converter={StaticResource BytesToSizeConverter}}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Grid>
+
+                    <!-- GPU Detail View -->
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedTab}" Value="GPU">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Margin="0,0,0,16">
+                            <TextBlock Text="{Binding GpuName}" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" DockPanel.Dock="Left"/>
+                            <TextBlock Text="{Binding GpuTemperatureC, StringFormat='{}{0:F0}°C'}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" DockPanel.Dock="Right" VerticalAlignment="Center"/>
+                        </DockPanel>
+
+                        <controls:PerformanceChart Grid.Row="1" Margin="0,0,0,16"
+                                                   HeaderText="GPU Utilization (%)"
+                                                   StrokeBrush="#00B294"
+                                                   Values="{Binding GpuHistory}"/>
+
+                        <UniformGrid Grid.Row="2" Columns="3">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Utilization" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding GpuUsagePercent, StringFormat='{}{0:F1}%'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="6,0,6,0">
+                                <TextBlock Text="Dedicated GPU Memory" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding GpuDedicatedUsedGb, StringFormat='{}{0:F1} / 8.0 GB'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                            <StackPanel Margin="12,0,0,0">
+                                <TextBlock Text="Temperature" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding GpuTemperatureC, StringFormat='{}{0:F0}°C'}" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </UniformGrid>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>

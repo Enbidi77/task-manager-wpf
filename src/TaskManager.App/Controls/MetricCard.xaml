@@ -1,0 +1,54 @@
+<UserControl x:Class="TaskManager.App.Controls.MetricCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:converters="clr-namespace:TaskManager.App.Converters"
+             mc:Ignorable="d" 
+             x:Name="RootCard">
+
+    <UserControl.Resources>
+        <converters:PercentageToColorConverter x:Key="PercentColorConverter" />
+    </UserControl.Resources>
+
+    <Border Style="{DynamicResource FluentCardStyle}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Card Header: Icon + Title -->
+            <DockPanel Grid.Row="0" Margin="0,0,0,10">
+                <TextBlock Text="{Binding IconGlyph, ElementName=RootCard}"
+                           FontFamily="Segoe MDL2 Assets" FontSize="16"
+                           Foreground="{Binding PercentageValue, ElementName=RootCard, Converter={StaticResource PercentColorConverter}}"
+                           VerticalAlignment="Center" Margin="0,0,8,0" DockPanel.Dock="Left"/>
+                <TextBlock Text="{Binding Title, ElementName=RootCard}"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+
+            <!-- Primary Metric Value -->
+            <TextBlock Grid.Row="1" Text="{Binding ValueText, ElementName=RootCard}"
+                       FontSize="30" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       Margin="0,0,0,8"/>
+
+            <!-- Progress Bar / Utilization Indicator -->
+            <ProgressBar Grid.Row="2" Value="{Binding PercentageValue, ElementName=RootCard}"
+                         Maximum="100" Height="6"
+                         Background="{DynamicResource SubtleSelectedBrush}"
+                         Foreground="{Binding PercentageValue, ElementName=RootCard, Converter={StaticResource PercentColorConverter}}"
+                         Margin="0,0,0,8"/>
+
+            <!-- Secondary Detail -->
+            <TextBlock Grid.Row="3" Text="{Binding DetailText, ElementName=RootCard}"
+                       FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
+                       TextTrimming="CharacterEllipsis"/>
+        </Grid>
+    </Border>
+</UserControl>

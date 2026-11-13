@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddSingleton<IProcessMonitor, WindowsProcessMonitor>();
         services.AddSingleton<IServiceMonitor, WindowsServiceMonitor>();
         services.AddSingleton<IStartupApplicationMonitor, WindowsStartupApplicationMonitor>();
+        services.AddSingleton<IUserSessionMonitor, WindowsUserSessionMonitor>();
 
         // Centralized Monitoring Coordinator
         services.AddSingleton<MonitoringCoordinator>();
